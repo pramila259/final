@@ -87,26 +87,33 @@ const server = http.createServer(async (req, res) => {
       };
 
       let handler;
-      // Route to appropriate API function
-      if (cleanUrl === '/api/certificates') {
-        const module = await import('../api/certificates/index.js');
-        handler = module.default;
-      } else if (cleanUrl.startsWith('/api/certificates/lookup/')) {
-        const number = cleanUrl.split('/').pop();
-        req.query = { number };
-        const module = await import('../api/certificates/lookup/[number].js');
-        handler = module.default;
-      } else if (cleanUrl === '/api/auth/login') {
-        const module = await import('../api/auth/login.js');
-        handler = module.default;
-      } else if (cleanUrl === '/api/setup/database') {
-        const module = await import('../api/setup/database.js');
-        handler = module.default;
-      } else if (cleanUrl.startsWith('/api/lookup')) {
-        // Parse query parameters for lookup endpoint
-        req.query = parsedUrl.query;
-        const module = await import('../api/lookup.js');
-        handler = module.default;
+      // Route to appropriate API function with error handling
+      try {
+        if (cleanUrl === '/api/certificates') {
+          const module = await import('../api/certificates/index.js');
+          handler = module.default;
+        } else if (cleanUrl.startsWith('/api/certificates/lookup/')) {
+          const number = cleanUrl.split('/').pop();
+          req.query = { number };
+          const module = await import('../api/certificates/lookup/[number].js');
+          handler = module.default;
+        } else if (cleanUrl === '/api/auth/login') {
+          const module = await import('../api/auth/login.js');
+          handler = module.default;
+        } else if (cleanUrl === '/api/setup/database') {
+          const module = await import('../api/setup/database.js');
+          handler = module.default;
+        } else if (cleanUrl.startsWith('/api/lookup')) {
+          // Parse query parameters for lookup endpoint
+          req.query = parsedUrl.query;
+          const module = await import('../api/lookup.js');
+          handler = module.default;
+        }
+      } catch (importError) {
+        console.error('Import error:', importError);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'API module load error', details: importError.message }));
+        return;
       }
 
       if (handler) {
@@ -164,9 +171,19 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+// Start server and ensure it opens the port immediately
+server.listen(PORT, '0.0.0.0', (err) => {
+  if (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
   console.log(`🚀 GIE Certificate System running on http://localhost:${PORT}`);
   console.log('📝 Static files served from /public directory');
   console.log('⚡ This is a Vercel serverless app running in local development mode');
   console.log('💡 For full API functionality, deploy to Vercel or use Vercel CLI');
+  
+  // Test that the server is actually listening
+  setTimeout(() => {
+    console.log('✅ Server startup completed successfully');
+  }, 1000);
 });
