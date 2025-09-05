@@ -845,16 +845,21 @@ const UploadCertificatePage = () => {
         setMessage('');
 
         try {
+            // Set default image based on gemstone type if no photo uploaded
+            let defaultImage = '/gemstone.jpg'; // Default fallback
+            if (!photoUrl) {
+                const gemType = formData.gemstoneType.toLowerCase();
+                if (gemType.includes('diamond')) defaultImage = '/diamond-sample.jpg';
+                else if (gemType.includes('ruby')) defaultImage = '/ruby-sample.jpg';
+                else if (gemType.includes('sapphire')) defaultImage = '/sapphire-sample.jpg';
+            }
+
             const submitData = {
                 ...formData,
-                imageUrl: photoUrl || null
+                imageUrl: photoUrl || defaultImage
             };
 
-            console.log('Submitting certificate data:', submitData); // Debug log
-
-            // Use Vercel serverless functions directly
             const apiUrl = '/api/certificates';
-            console.log('Making request to Vercel API:', apiUrl);
             
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -862,24 +867,33 @@ const UploadCertificatePage = () => {
                 body: JSON.stringify(submitData)
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
-            
             const responseText = await response.text();
-            console.log('Raw response text:', responseText);
             
             let result;
             try {
                 result = JSON.parse(responseText);
-                console.log('Parsed JSON result:', result);
             } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response was not valid JSON:', responseText);
-                throw new Error(`Server returned invalid response: ${responseText.substring(0, 100)}`);
+                throw new Error(`Server error: ${responseText.substring(0, 200)}`);
             }
 
             if (response.ok) {
-                setMessage('Certificate uploaded successfully!');
+                const certNumber = formData.certificateNumber;
+                setMessage(`✅ Certificate ${certNumber} uploaded successfully! Verifying...`);
+                
+                // Auto-verify the uploaded certificate
+                setTimeout(async () => {
+                    try {
+                        const verifyResponse = await fetch(`/api/lookup?number=${encodeURIComponent(certNumber)}`);
+                        if (verifyResponse.ok) {
+                            setMessage(`✅ Certificate ${certNumber} uploaded and verified successfully!\n🔍 Search confirmed - your certificate is now searchable.`);
+                        } else {
+                            setMessage(`✅ Certificate ${certNumber} uploaded, but verification failed. Please try searching manually.`);
+                        }
+                    } catch (error) {
+                        setMessage(`✅ Certificate ${certNumber} uploaded (verification check failed, but upload likely succeeded).`);
+                    }
+                }, 1000); // Wait 1 second then verify
+                
                 setFormData({
                     certificateNumber: '',
                     gemstoneType: '',
@@ -896,12 +910,10 @@ const UploadCertificatePage = () => {
                 });
                 setPhotoUrl('');
             } else {
-                setMessage(`Error: ${result.message || result.error || 'Unknown error occurred'}`);
-                console.error('Upload error:', result);
+                setMessage(`❌ Upload failed: ${result.message || result.error || 'Unknown error occurred'}`);
             }
         } catch (error) {
-            console.error('Network error:', error);
-            setMessage(`Network error: ${error.message}`);
+            setMessage(`❌ Upload failed: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -932,7 +944,7 @@ const UploadCertificatePage = () => {
                         
                         {message && (
                             <div className={`mb-6 p-4 rounded ${message.includes('successfully') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {message}
+                                <div style={{whiteSpace: 'pre-line'}}>{message}</div>
                             </div>
                         )}
                         
