@@ -24,11 +24,31 @@
       "destination": "/public/images/$1"
     },
     {
-      "source": "/(.*\\.(jpg|jpeg|png|gif|svg|webp|ico|pdf|txt|md|json))",
-      "destination": "/public/$1"
+      "source": "/logo.png",
+      "destination": "/public/logo.png"
     },
     {
-      "source": "/(upload-certificate|about|certification|contact)/?$",
+      "source": "/gemstone.jpg",
+      "destination": "/public/gemstone.jpg"
+    },
+    {
+      "source": "/diamond-sample.jpg",
+      "destination": "/public/diamond-sample.jpg"
+    },
+    {
+      "source": "/ruby-sample.jpg",
+      "destination": "/public/ruby-sample.jpg"
+    },
+    {
+      "source": "/sapphire-sample.jpg",
+      "destination": "/public/sapphire-sample.jpg"
+    },
+    {
+      "source": "/(upload-certificate|about|certification|contact)",
+      "destination": "/public/index.html"
+    },
+    {
+      "source": "/",
       "destination": "/public/index.html"
     },
     {
