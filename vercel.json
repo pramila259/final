@@ -24,7 +24,7 @@
       "destination": "/public/images/$1"
     },
     {
-      "source": "/(.*\\.(jpg|jpeg|png|gif|svg|webp|ico|pdf|txt|md|json))$",
+      "source": "/(.*\\.(jpg|jpeg|png|gif|svg|webp|ico|pdf|txt|md|json))",
       "destination": "/public/$1"
     },
     {
