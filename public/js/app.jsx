@@ -887,7 +887,7 @@ const UploadCertificatePage = () => {
                 // Auto-verify the uploaded certificate
                 setTimeout(async () => {
                     try {
-                        const verifyResponse = await fetch(`/api/certificates/lookup/${encodeURIComponent(certNumber)}`);
+                        const verifyResponse = await fetch(`/api/search?number=${encodeURIComponent(certNumber)}`);
                         
                         // Check if verification response is JSON
                         const verifyContentType = verifyResponse.headers.get('content-type');
@@ -1179,7 +1179,7 @@ const HomePage = () => {
         setCertificate(null);
 
         try {
-            const apiUrl = `/api/certificates/lookup/${encodeURIComponent(certificateNumber)}`;
+            const apiUrl = `/api/search?number=${encodeURIComponent(certificateNumber)}`;
             console.log('Making API request to:', apiUrl);
             
             const response = await fetch(apiUrl);
