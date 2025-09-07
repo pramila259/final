@@ -1193,6 +1193,25 @@ const HomePage = () => {
         setCertificate(null);
 
         try {
+            // First test if API routing is working at all
+            console.log('Testing API connectivity...');
+            try {
+                const testResponse = await fetch('/api/test');
+                const testData = await testResponse.json();
+                console.log('API test result:', testData);
+                
+                if (!testData.success) {
+                    throw new Error('API routing is not working');
+                }
+                
+                if (!testData.environment.hasDatabase) {
+                    throw new Error('Database environment variable not configured in Vercel');
+                }
+            } catch (testError) {
+                console.error('API test failed:', testError);
+                throw new Error(`Deployment issue: ${testError.message}. Please check Vercel configuration.`);
+            }
+
             // Try multiple API endpoints to find one that works
             const endpoints = [
                 `/api/search?number=${encodeURIComponent(certificateNumber)}`,
