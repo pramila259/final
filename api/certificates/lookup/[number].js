@@ -1,7 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 
 // Initialize Neon database connection
-const sql = neon(process.env.DATABASE_URL);
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_0emZHsKUwy8V@ep-falling-brook-a1555d6b-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const sql = neon(DATABASE_URL);
 
 // CORS headers for all responses
 const corsHeaders = {
