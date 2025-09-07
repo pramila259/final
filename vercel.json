@@ -36,11 +36,15 @@
       "dest": "/public/$1"
     },
     {
-      "src": "/(upload-certificate|about|certification|contact)/?",
+      "src": "/(upload-certificate|about|certification|contact)/?$",
       "dest": "/public/index.html"
     },
     {
-      "src": "/(.*)",
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/((?!api/).*)$",
       "dest": "/public/index.html"
     }
   ]
