@@ -887,7 +887,21 @@ const UploadCertificatePage = () => {
                 // Auto-verify the uploaded certificate
                 setTimeout(async () => {
                     try {
-                        const verifyResponse = await fetch(`/api/search?number=${encodeURIComponent(certNumber)}`);
+                        // Try multiple endpoints for verification
+                        const verifyEndpoints = [`/api/search?number=${encodeURIComponent(certNumber)}`, `/api/lookup?number=${encodeURIComponent(certNumber)}`];
+                        let verifyResponse = null;
+                        
+                        for (const endpoint of verifyEndpoints) {
+                            try {
+                                const resp = await fetch(endpoint);
+                                if (resp.headers.get('content-type')?.includes('application/json')) {
+                                    verifyResponse = resp;
+                                    break;
+                                }
+                            } catch (e) {
+                                console.log('Verify endpoint failed:', endpoint);
+                            }
+                        }
                         
                         // Check if verification response is JSON
                         const verifyContentType = verifyResponse.headers.get('content-type');
@@ -1179,19 +1193,41 @@ const HomePage = () => {
         setCertificate(null);
 
         try {
-            const apiUrl = `/api/search?number=${encodeURIComponent(certificateNumber)}`;
-            console.log('Making API request to:', apiUrl);
+            // Try multiple API endpoints to find one that works
+            const endpoints = [
+                `/api/search?number=${encodeURIComponent(certificateNumber)}`,
+                `/api/lookup?number=${encodeURIComponent(certificateNumber)}`,
+                `/api/certificates/lookup/${encodeURIComponent(certificateNumber)}`
+            ];
             
-            const response = await fetch(apiUrl);
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers.get('content-type'));
+            let response = null;
+            let lastError = null;
             
-            // Check if response is JSON before parsing
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const textResponse = await response.text();
-                console.error('Non-JSON response received:', textResponse);
-                throw new Error(`Server returned HTML instead of JSON. This might be a deployment issue. Status: ${response.status}`);
+            for (const apiUrl of endpoints) {
+                console.log('Trying API endpoint:', apiUrl);
+                try {
+                    response = await fetch(apiUrl);
+                    console.log(`Response from ${apiUrl}: status=${response.status}, content-type=${response.headers.get('content-type')}`);
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        console.log(`SUCCESS: Found working endpoint: ${apiUrl}`);
+                        break; // Found a working endpoint
+                    } else {
+                        console.log(`Endpoint ${apiUrl} returned non-JSON response`);
+                        lastError = `Server returned HTML instead of JSON. Status: ${response.status}`;
+                        response = null;
+                    }
+                } catch (err) {
+                    console.log(`Endpoint ${apiUrl} failed:`, err.message);
+                    lastError = err.message;
+                    response = null;
+                }
+            }
+            
+            if (!response) {
+                throw new Error(lastError || 'All API endpoints failed');
             }
             
             const data = await response.json();
