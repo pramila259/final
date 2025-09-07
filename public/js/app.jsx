@@ -867,14 +867,18 @@ const UploadCertificatePage = () => {
                 body: JSON.stringify(submitData)
             });
 
-            const responseText = await response.text();
+            console.log('Upload response status:', response.status);
+            console.log('Upload response content-type:', response.headers.get('content-type'));
             
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (parseError) {
-                throw new Error(`Server error: ${responseText.substring(0, 200)}`);
+            // Check if response is JSON before parsing
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                console.error('Non-JSON response received from upload:', textResponse);
+                throw new Error(`Server returned HTML instead of JSON during upload. Status: ${response.status}`);
             }
+            
+            const result = await response.json();
 
             if (response.ok) {
                 const certNumber = formData.certificateNumber;
@@ -884,7 +888,10 @@ const UploadCertificatePage = () => {
                 setTimeout(async () => {
                     try {
                         const verifyResponse = await fetch(`/api/lookup?number=${encodeURIComponent(certNumber)}`);
-                        if (verifyResponse.ok) {
+                        
+                        // Check if verification response is JSON
+                        const verifyContentType = verifyResponse.headers.get('content-type');
+                        if (verifyContentType && verifyContentType.includes('application/json') && verifyResponse.ok) {
                             setMessage(`✅ Certificate ${certNumber} uploaded and verified successfully!\n🔍 Search confirmed - your certificate is now searchable.`);
                         } else {
                             setMessage(`✅ Certificate ${certNumber} uploaded, but verification failed. Please try searching manually.`);
@@ -1173,8 +1180,22 @@ const HomePage = () => {
 
         try {
             const apiUrl = `/api/lookup?number=${encodeURIComponent(certificateNumber)}`;
+            console.log('Making API request to:', apiUrl);
+            
             const response = await fetch(apiUrl);
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers.get('content-type'));
+            
+            // Check if response is JSON before parsing
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                console.error('Non-JSON response received:', textResponse);
+                throw new Error(`Server returned HTML instead of JSON. This might be a deployment issue. Status: ${response.status}`);
+            }
+            
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (response.ok) {
                 // Transform database response to expected format
