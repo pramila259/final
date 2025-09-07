@@ -1,55 +1,39 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/test.js": {
+      "runtime": "@vercel/node"
     },
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
+    "api/search.js": {
+      "runtime": "@vercel/node"
     },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
+    "api/lookup.js": {
+      "runtime": "@vercel/node"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/js/(.*)",
+      "destination": "/public/js/$1"
     },
     {
-      "src": "/js/(.*)",
-      "dest": "/public/js/$1"
+      "source": "/css/(.*)",
+      "destination": "/public/css/$1"
     },
     {
-      "src": "/css/(.*)",
-      "dest": "/public/css/$1"
+      "source": "/images/(.*)",
+      "destination": "/public/images/$1"
     },
     {
-      "src": "/images/(.*)",
-      "dest": "/public/images/$1"
+      "source": "/(.*\\.(jpg|jpeg|png|gif|svg|webp|ico|pdf|txt|md|json))$",
+      "destination": "/public/$1"
     },
     {
-      "src": "/(.*\\.(jpg|jpeg|png|gif|svg|webp|ico|pdf|txt|md|json))$",
-      "dest": "/public/$1"
+      "source": "/(upload-certificate|about|certification|contact)/?$",
+      "destination": "/public/index.html"
     },
     {
-      "src": "/(logo\\.png|header\\.jpg|gemstone\\.jpg|diamond-sample\\.jpg|ruby-sample\\.jpg|sapphire-sample\\.jpg)$",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(upload-certificate|about|certification|contact)/?$",
-      "dest": "/public/index.html"
-    },
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
-    {
-      "src": "/((?!api/).*)$",
-      "dest": "/public/index.html"
+      "source": "/((?!api).*)",
+      "destination": "/public/index.html"
     }
   ]
 }
