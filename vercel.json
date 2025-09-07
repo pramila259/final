@@ -1,15 +1,4 @@
 {
-  "functions": {
-    "api/test.js": {
-      "runtime": "@vercel/node@18.x"
-    },
-    "api/search.js": {
-      "runtime": "@vercel/node@18.x"
-    },
-    "api/lookup.js": {
-      "runtime": "@vercel/node@18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/js/(.*)",
